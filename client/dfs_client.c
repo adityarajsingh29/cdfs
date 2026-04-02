@@ -303,3 +303,96 @@ int32_t cdfs_ls(const uint8_t *cdfs_path) {
     close(meta_sock);
     return 0;
 }
+
+int32_t cdfs_status() {
+    cdfs_config_t config;
+    load_config((const uint8_t *)"cdfs.conf", &config);
+    int32_t meta_sock = connect_to_server((const uint8_t *)config.meta_ip, config.meta_port);
+    if (meta_sock < 0) return -1;
+
+    net_header_t hdr = { OP_GET_METRICS, 0 };
+    send_exact(meta_sock, &hdr, sizeof(hdr));
+
+    net_header_t resp_hdr;
+    if (recv_exact(meta_sock, &resp_hdr, sizeof(resp_hdr)) == 0 && resp_hdr.payload_size > 0) {
+        char *json = malloc(resp_hdr.payload_size + 1);
+        if (recv_exact(meta_sock, json, resp_hdr.payload_size) == 0) {
+            json[resp_hdr.payload_size] = '\0';
+            printf("%s", json);
+        }
+        free(json);
+    }
+    close(meta_sock);
+    return 0;
+}
+
+int32_t cdfs_rm(const uint8_t *cdfs_path) {
+    cdfs_config_t config;
+    load_config((const uint8_t *)"cdfs.conf", &config);
+    int32_t meta_sock = connect_to_server((const uint8_t *)config.meta_ip, config.meta_port);
+    if (meta_sock < 0) return -1;
+
+    req_delete_file_t req;
+    memset(&req, 0, sizeof(req));
+    strncpy((char *)req.filename, (const char *)cdfs_path, MAX_FILENAME - 1);
+
+    net_header_t hdr = { OP_DELETE_FILE, sizeof(req) };
+    send_exact(meta_sock, &hdr, sizeof(hdr));
+    send_exact(meta_sock, &req, sizeof(req));
+
+    net_header_t resp_hdr;
+    int32_t status = -1;
+    if (recv_exact(meta_sock, &resp_hdr, sizeof(resp_hdr)) == 0 &&
+        recv_exact(meta_sock, &status, sizeof(status)) == 0) {
+        // status received
+    }
+    close(meta_sock);
+    return status;
+}
+
+int32_t cdfs_status() {
+    cdfs_config_t config;
+    load_config((const uint8_t *)"cdfs.conf", &config);
+    int32_t meta_sock = connect_to_server((const uint8_t *)config.meta_ip, config.meta_port);
+    if (meta_sock < 0) return -1;
+
+    net_header_t hdr = { OP_GET_METRICS, 0 };
+    send_exact(meta_sock, &hdr, sizeof(hdr));
+
+    net_header_t resp_hdr;
+    if (recv_exact(meta_sock, &resp_hdr, sizeof(resp_hdr)) == 0 && resp_hdr.payload_size > 0) {
+        char *json = malloc(resp_hdr.payload_size + 1);
+        if (recv_exact(meta_sock, json, resp_hdr.payload_size) == 0) {
+            json[resp_hdr.payload_size] = '\0';
+            printf("%s", json);
+        }
+        free(json);
+    }
+    close(meta_sock);
+    return 0;
+}
+
+int32_t cdfs_rm(const uint8_t *cdfs_path) {
+    cdfs_config_t config;
+    load_config((const uint8_t *)"cdfs.conf", &config);
+    int32_t meta_sock = connect_to_server((const uint8_t *)config.meta_ip, config.meta_port);
+    if (meta_sock < 0) return -1;
+
+    req_delete_file_t req;
+    memset(&req, 0, sizeof(req));
+    strncpy((char *)req.filename, (const char *)cdfs_path, MAX_FILENAME - 1);
+
+    net_header_t hdr = { OP_DELETE_FILE, sizeof(req) };
+    send_exact(meta_sock, &hdr, sizeof(hdr));
+    send_exact(meta_sock, &req, sizeof(req));
+
+    net_header_t resp_hdr;
+    int32_t status = -1;
+    if (recv_exact(meta_sock, &resp_hdr, sizeof(resp_hdr)) == 0 &&
+        recv_exact(meta_sock, &status, sizeof(status)) == 0) {
+        // status received
+    }
+    close(meta_sock);
+    return status;
+}
+
